@@ -1,0 +1,60 @@
+name: Build ZMK Firmware
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Cache ZMK
+      id: cache-zmk
+      uses: actions/cache@v4
+      with:
+        path: |
+          .west
+          modules/
+          zephyr/
+          bootloader/
+          app/
+          tools/
+        key: ${{ runner.os }}-zmk-${{ hashFiles('**/west.yml', '**/build.yaml') }}
+        
+    - name: Initialize ZMK
+      if: steps.cache-zmk.outputs.cache-hit != 'true'
+      run: |
+        git config --global user.name "ZMK Builder"
+        git config --global user.email "build@example.com"
+        pipx install west
+        west init -l config || true
+        
+    - name: Update ZMK Modules
+      run: |
+        west update
+        
+    - name: Setup Zephyr SDK
+      uses: zmkfirmware/zephyr-sdk-action@v2
+      with:
+        version: v0.16.1
+        
+    - name: Build Firmware
+      run: |
+        west build -b nice_nano --build-dir build/typeractive_corne_left -- -DSHIELD=typeractive_corne_left -DZMK_CONFIG="$(pwd)/config"
+        west build -b nice_nano --build-dir build/typeractive_corne_right -- -DSHIELD=typeractive_corne_right -DZMK_CONFIG="$(pwd)/config"
+        
+    - name: Archive Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware
+        path: |
+          build/typeractive_corne_left/zephyr/zmk.uf2
+          build/typeractive_corne_right/zephyr/zmk.uf2
+        retention-days: 30

@@ -1,0 +1,20 @@
+extends: default
+
+rules:
+  # Allow 120 character line length
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+    
+  # Require consistent spacing
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    
+  # Avoid trailing spaces
+  trailing-spaces: enable
+    
+  # Require colons to have spaces after them
+  colons:
+    max-spaces-after: 1
+    max-spaces-before: 0

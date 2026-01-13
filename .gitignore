@@ -8,3 +8,27 @@ devenv.local.yaml
 
 # pre-commit
 .pre-commit-config.yaml
+
+# ZMK build artifacts
+build/
+*.uf2
+*.hex
+*.bin
+
+# West
+.west/
+modules/
+zephyr/
+bootloader/
+app/
+tools/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

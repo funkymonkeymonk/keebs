@@ -1,0 +1,115 @@
+---
+version: '3'
+
+vars:
+  BUILD_DIR: build
+  BOARD: nice_nano
+  SHIELD_LEFT: typeractive_corne_left
+  SHIELD_RIGHT: typeractive_corne_right
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  setup:
+    desc: Initialize development environment
+    cmds:
+      - echo "Initializing ZMK development environment..."
+      - echo "Checking environment..."
+      - echo "✅ Development environment is ready"
+
+  init:
+    desc: Initialize west and download ZMK modules
+    deps: [setup]
+    cmds:
+      - echo "Initializing west..."
+      - test -d ".west" || west init -l config
+      - echo "Updating west modules..."
+      - west update
+      - echo "✅ West initialization complete"
+
+  build:
+    desc: Build firmware for both keyboard halves
+    deps: [init]
+    cmds:
+      - echo "Building ZMK firmware for Typeractive Corne..."
+      - west build -b {{.BOARD}} --build-dir "{{.BUILD_DIR}}/typeractive_corne_left"
+      - -- -DSHIELD={{.SHIELD_LEFT}} -DZMK_CONFIG="$(pwd)/config"
+      - west build -b {{.BOARD}} --build-dir "{{.BUILD_DIR}}/typeractive_corne_right"
+      - -- -DSHIELD={{.SHIELD_RIGHT}} -DZMK_CONFIG="$(pwd)/config"
+      - mkdir -p {{.BUILD_DIR}}
+      - cp "{{.BUILD_DIR}}/typeractive_corne_left/zephyr/zmk.uf2"
+      - "{{.BUILD_DIR}}/typeractive_corne_left.uf2"
+      - cp "{{.BUILD_DIR}}/typeractive_corne_right/zephyr/zmk.uf2"
+      - "{{.BUILD_DIR}}/typeractive_corne_right.uf2"
+      - echo "✅ Build complete!"
+
+  build-left:
+    desc: Build firmware for left half only
+    deps: [init]
+    cmds:
+      - west build -b {{.BOARD}} --build-dir "{{.BUILD_DIR}}/typeractive_corne_left"
+      - -- -DSHIELD={{.SHIELD_LEFT}} -DZMK_CONFIG="$(pwd)/config"
+      - mkdir -p {{.BUILD_DIR}}
+      - cp "{{.BUILD_DIR}}/typeractive_corne_left/zephyr/zmk.uf2"
+      - "{{.BUILD_DIR}}/typeractive_corne_left.uf2"
+
+  build-right:
+    desc: Build firmware for right half only
+    deps: [init]
+    cmds:
+      - west build -b {{.BOARD}} --build-dir "{{.BUILD_DIR}}/typeractive_corne_right"
+      - -- -DSHIELD={{.SHIELD_RIGHT}} -DZMK_CONFIG="$(pwd)/config"
+      - mkdir -p {{.BUILD_DIR}}
+      - cp "{{.BUILD_DIR}}/typeractive_corne_right/zephyr/zmk.uf2"
+      - "{{.BUILD_DIR}}/typeractive_corne_right.uf2"
+
+  flash:
+    desc: Show flashing instructions and open build directory
+    deps: [build]
+    cmds:
+      - echo "ZMK Flash Instructions"
+      - echo "For each half:"
+      - echo "1. Connect keyboard via USB"
+      - echo "2. Double-tap reset button"
+      - echo "3. Copy UF2 file when it appears"
+      - echo "Firmware in build directory"
+      - echo "Opening build directory..."
+      - open '{{.BUILD_DIR}}/'
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf {{.BUILD_DIR}}
+      - echo "✅ Build artifacts cleaned"
+
+  clean-all:
+    desc: Clean everything including west modules
+    deps: [clean]
+    cmds:
+      - rm -rf .west modules zephyr bootloader app tools
+      - echo "✅ All artifacts cleaned"
+
+  status:
+    desc: Show build status
+    cmds:
+      - echo "ZMK Build Status"
+      - test -f '{{.BUILD_DIR}}/typeractive_corne_left.uf2' && echo '✅ Left exists' || echo '❌ Left missing'
+      - test -f '{{.BUILD_DIR}}/typeractive_corne_right.uf2' && echo '✅ Right exists' || echo '❌ Right missing'
+
+  watch:
+    desc: Watch for changes and rebuild
+    deps: [build]
+    cmds:
+      - find config/ -name "*.keymap" -o -name "*.conf" | entr -s "task build"
+
+  help:
+    desc: Show detailed help
+    cmds:
+      - task --list --list-all
+      - echo "Common workflows:"
+      - echo "  task build - Build firmware"
+      - echo "  task flash - Build and show instructions"
+      - echo "  task clean - Clean build artifacts"

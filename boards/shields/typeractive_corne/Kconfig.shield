@@ -1,0 +1,44 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+config SHIELD_TYPERACTIVE_CORNE_LEFT
+    bool "Typeractive Corne Left Half"
+    depends on (SOC_NRF52840_QIAA || SOC_NRF52833_QIAA)
+
+config SHIELD_TYPERACTIVE_CORNE_RIGHT
+    bool "Typeractive Corne Right Half"
+    depends on (SOC_NRF52840_QIAA || SOC_NRF52833_QIAA)
+
+config ZMK_SPLIT
+    bool
+    default y
+    depends on SHIELD_TYPERACTIVE_CORNE_LEFT || SHIELD_TYPERACTIVE_CORNE_RIGHT
+
+config ZMK_SPLIT_BLE
+    bool
+    default y
+    depends on SHIELD_TYPERACTIVE_CORNE_LEFT || SHIELD_TYPERACTIVE_CORNE_RIGHT
+
+if SHIELD_TYPERACTIVE_CORNE_LEFT
+
+config ZMK_LEFT
+    bool
+    default y
+
+config ZMK_BLE_PERIPHERAL
+    bool
+    default y
+
+endif
+
+if SHIELD_TYPERACTIVE_CORNE_RIGHT
+
+config ZMK_RIGHT
+    bool
+    default y
+
+config ZMK_BLE_CENTRAL
+    bool
+    default y
+
+endif
