@@ -10,39 +10,7 @@ This repository contains the ZMK firmware configuration for a Typeractive Corne 
 
 ## Setup
 
-### Local Development
-
-1. Install [devenv](https://devenv.sh/)
-2. Run `devenv shell` to enter the development environment
-3. Use Task commands to build firmware locally
-
 ### Building Firmware
-
-#### Locally with Task
-
-```bash
-# Enter development environment
-devenv shell
-
-# Build firmware for both halves
-task build
-
-# Build specific half only
-task build-left
-task build-right
-
-# Clean build artifacts
-task clean
-
-# Show build status
-task status
-
-# Watch for config changes and rebuild
-task watch
-
-# Show all available tasks
-task help
-```
 
 #### Via GitHub Actions
 
@@ -70,10 +38,7 @@ This configuration uses a modified Miryoku layout with the following features:
 ```
 ├── config/                    # Keymap and configuration files
 ├── boards/shields/           # Keyboard definitions
-├── .github/workflows/        # CI/CD workflows
-├── devenv.nix               # Development environment
-├── build.yaml               # Build configuration
-└── build.sh                 # Local build script
+└── .github/workflows/        # CI/CD workflows
 ```
 
 ## References
