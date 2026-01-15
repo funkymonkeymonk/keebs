@@ -4,7 +4,7 @@ name: Build Failure Handler
 on:
   workflow_run:
     workflows:
-      - build.yml
+      - Build
     types:
       - completed
     branches:
