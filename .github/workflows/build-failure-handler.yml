@@ -73,8 +73,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const details = `${{ steps.workflow-details.outputs.result }}`;
-            const workflowDetails = JSON.parse(details);
+            const workflowDetails = ${{ steps.workflow-details.outputs.result }};
 
             const issueTitle = '🚨 Build Failure - ' + workflowDetails.workflowName + ' #' + workflowDetails.runNumber;
 
