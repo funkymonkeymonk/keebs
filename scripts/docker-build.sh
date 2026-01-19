@@ -2,11 +2,72 @@
 
 # ZMK Docker Build Script
 # Uses ZMK's official Docker image for building firmware locally
+# Automatically reads from build.yaml configuration
 
 set -e
 
-KEYBOARD_NAME=""
-BOARD="nice_nano"
+# Function to check if Docker is available and running
+check_docker() {
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "❌ Error: Docker is not installed or not in PATH"
+        echo "   Please install Docker and try again"
+        exit 1
+    fi
+    
+    if ! docker info >/dev/null 2>&1; then
+        echo "❌ Error: Docker daemon is not running"
+        echo "   Please start Docker and try again"
+        exit 1
+    fi
+}
+
+# Function to build single configuration
+build_single_config() {
+    local board="$1"
+    local shields="$2"
+    local config_path="$3"
+    
+    # Default to repo config if no custom path
+    if [ -z "$config_path" ]; then
+        config_path="/work/config"
+    fi
+    
+    # Build command - handle multiple shields properly
+    BUILD_CMD="west build -b $board -- -DSHIELD=$shields -DZMK_CONFIG=$config_path"
+    
+    echo "🐳 Running Docker build..."
+    
+    # Mirror official ZMK GHA process
+    docker run --rm \
+        -v "$(dirname "$0")/../:/work" \
+        -w /work \
+        zmkfirmware/zmk-build:stable \
+        bash -c "
+        set -e
+        echo '🔧 Initializing ZMK Workspace...'
+        west init -l app
+        
+        echo '📦 Updating dependencies...'
+        west update
+        
+        echo '📤 Exporting Zephyr CMake package...'
+        west zephyr-export
+        
+        echo '🏗️ Building firmware...'
+        cd app
+        $BUILD_CMD
+        "
+    
+    if [ $? -eq 0 ]; then
+        echo "   ✅ Build successful!"
+    else
+        echo "   ❌ Build failed!"
+        return 1
+    fi
+}
+
+# Default values
+BOARD=""
 SHIELD=""
 ZMK_CONFIG=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,18 +79,18 @@ show_help() {
     echo ""
     echo "Usage: $0 [OPTIONS]"
     echo ""
-    echo "Required:"
-    echo "  -s, --shield SHIELD      Keyboard shield name (e.g., kyria_left, crkbd)"
-    echo ""
     echo "Optional:"
-    echo "  -b, --board BOARD        Board name (default: nice_nano)"
-    echo "  -c, --config PATH        Path to config directory"
+    echo "  -s, --shield SHIELD      Build specific shield (overrides build.yaml)"
+    echo "  -b, --board BOARD        Board name (overrides build.yaml)"
+    echo "  -c, --config PATH        Custom config directory"
     echo "  -h, --help              Show this help"
     echo ""
+    echo "If no arguments provided, builds all configurations from build.yaml"
+    echo ""
     echo "Examples:"
-    echo "  $0 --shield kyria_left"
-    echo "  $0 -s crkbd -c /path/to/config"
-    echo "  $0 -s my_keyboard --board nice_nano_v2"
+    echo "  $0                            # Build all from build.yaml"
+    echo "  $0 --shield corne_left       # Build specific shield"
+    echo "  $0 -s crkbd -b nice_nano_v2  # Custom board/shield"
 }
 
 # Parse arguments
@@ -59,90 +120,109 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check required arguments
-if [ -z "$SHIELD" ]; then
-    echo "❌ Error: Shield name is required"
-    show_help
-    exit 1
-fi
+# Check Docker availability
+check_docker
 
 echo "🎹 Building ZMK firmware with Docker..."
-echo "   Board: $BOARD"
-echo "   Shield: $SHIELD"
-if [ -n "$ZMK_CONFIG" ]; then
-    echo "   Config: $ZMK_CONFIG"
-fi
-echo ""
 
-# Build command (mirroring GHA)
-BUILD_CMD="west build -b $BOARD -- -DSHIELD=$SHIELD -DZMK_CONFIG=/work/config"
-
-# Extract shields from build.yaml if it exists
-if [ -f "$REPO_DIR/build.yaml" ] && [ -z "$ZMK_CONFIG" ]; then
-    echo "📋 Reading shields from build.yaml..."
+# Parse build.yaml if no specific shield provided
+if [ -z "$SHIELD" ] && [ -f "$REPO_DIR/build.yaml" ]; then
+    echo "📋 Reading configurations from build.yaml..."
     
-    # Parse YAML to extract board/shield combinations
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^[[:space:]]*board:[[:space:]]*([a-z0-9_]+) ]]; then
-            CURRENT_BOARD="${BASH_REMATCH[1]}"
-        elif [[ "$line" =~ ^[[:space:]]*shield:[[:space:]]*(.+) ]]; then
-            CURRENT_SHIELD="${BASH_REMATCH[1]}"
-        elif [[ "$line" =~ ^[[:space:]]*snippet:[[:space:]]*(.+) ]]; then
-            CURRENT_SNIPPET="${BASH_REMATCH[1]}"
+    # Use yq if available, otherwise simple grep/awk approach
+    if command -v yq >/dev/null 2>&1; then
+        echo "   Using yq for YAML parsing"
+        # Parse with yq
+        IFS=$'\n' read -r -d '' -a configs <<< "$(yq eval '.include | map(.board + ":" + (.shield | join(" "))' "$REPO_DIR/build.yaml")"
+        
+        if [ ${#configs[@]} -gt 0 ] && [ "${configs[0]}" != "null" ]; then
+            echo ""
+            echo "🏗️ Building ${#configs[@]} configuration(s)..."
+            
+            for config in "${configs[@]}"; do
+                if [ "$config" != "null" ]; then
+                    IFS=':' read -r board shields <<< "$config"
+                    echo ""
+                    echo "--- Building: $board + $shields ---"
+                    build_single_config "$board" "$shields" "$ZMK_CONFIG"
+                fi
+            done
+            
+            echo ""
+            echo "✅ All builds completed!"
+            echo "📁 Firmware files available in build directories"
+            exit 0
         fi
-    done < "$REPO_DIR/build.yaml"
-    
-    # Use the parsed values if we have them
-    if [ -n "$CURRENT_BOARD" ] && [ -n "$CURRENT_SHIELD" ]; then
-        BOARD="$CURRENT_BOARD"
-        SHIELD="$CURRENT_SHIELD"
-        echo "   Using board: $BOARD"
-        echo "   Using shield: $SHIELD"
-        if [ -n "$CURRENT_SNIPPET" ]; then
-            echo "   Using snippet: $CURRENT_SNIPPET"
+    else
+        echo "   Using awk for YAML parsing"
+        # Use awk to parse the YAML structure properly
+        declare -a configs
+        
+        # Extract board/shield combinations using awk
+        while IFS= read -r line; do
+            # Skip if not in include section
+            if [[ "$line" != *"include:"* ]] && [[ "$line" != *"board:"* ]]; then
+                continue
+            fi
+            
+            # Look for board lines (indented with -)
+            if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*board:[[:space:]]*([a-z0-9_]+) ]]; then
+                board="${BASH_REMATCH[1]}"
+                # Get shield from next line(s)
+                shields=""
+                while IFS= read -r next_line; do
+                    if [[ "$next_line" =~ ^[[:space:]]*shield:[[:space:]]*(.+)[[:space:]]*$ ]] || [[ "$next_line" =~ ^[[:space:]]*shield:[[:space:]]*(.+)[[:space:]]*snippet: ]]; then
+                        shields="${BASH_REMATCH[1]}"
+                        # Add shields to configs
+                        if [ -n "$shields" ]; then
+                            configs+=("$board:$shields")
+                            echo "   Found: $board + $shields"
+                        fi
+                        break
+                    else
+                        # Skip blank lines or comments
+                        if [[ -n "$next_line" ]] && [[ ! "$next_line" =~ ^[[:space:]]*# ]]; then
+                            break
+                        fi
+                    fi
+                done
+            fi
+        done < "$REPO_DIR/build.yaml"
+        
+        # Build each configuration
+        if [ ${#configs[@]} -gt 0 ]; then
+            echo ""
+            echo "🏗️ Building ${#configs[@]} configuration(s)..."
+            
+            for config in "${configs[@]}"; do
+                IFS=':' read -r board shields <<< "$config"
+                echo ""
+                echo "--- Building: $board + $shields ---"
+                build_single_config "$board" "$shields" "$ZMK_CONFIG"
+            done
+            
+            echo ""
+            echo "✅ All builds completed!"
+            echo "📁 Firmware files available in build directories"
+            exit 0
         fi
     fi
 fi
 
-echo "🐳 Running Docker build (mirroring GHA process)..."
-
-# Mirror the exact GHA process
-docker run --rm \
-    -v "$REPO_DIR:/work" \
-    -w /work \
-    zmkfirmware/zmk-build:stable \
-    bash -c "
-    set -e
-    echo '🔧 Initializing ZMK Workspace...'
-    west init -l app
-    
-    echo '📦 Updating dependencies...'
-    west update
-    
-    echo '📤 Exporting Zephyr CMake package...'
-    west zephyr-export
-    
-    echo '🏗️ Building firmware...'
-    cd app
-    $BUILD_CMD
-    "
-
-if [ $? -eq 0 ]; then
-    echo ""
-    echo "✅ Build completed successfully!"
-    echo "📁 Firmware files should be available in: $REPO_DIR/zmk/app/build/zephyr/"
-    
-    # Show the generated files
-    if [ -d "$REPO_DIR/zmk/app/build/zephyr" ]; then
-        echo "📋 Generated firmware files:"
-        ls -la "$REPO_DIR/zmk/app/build/zephyr/"*.uf2 "$REPO_DIR/zmk/app/build/zephyr/"*.hex "$REPO_DIR/zmk/app/build/zephyr/"*.bin 2>/dev/null || echo "   No firmware files found"
+# Build single configuration if shield specified
+if [ -n "$SHIELD" ]; then
+    if [ -z "$BOARD" ]; then
+        BOARD="nice_nano_v2"  # Default board
     fi
-    
+    echo "   Board: $BOARD"
+    echo "   Shield: $SHIELD"
     echo ""
-    echo "🔨 To flash your Nice!Nano:"
-    echo "   1. Double-tap the reset button on your Nice!Nano"
-    echo "   2. Copy the .uf2 file to the USB mass storage device"
-else
-    echo "❌ Build failed!"
-    exit 1
+    build_single_config "$BOARD" "$SHIELD" "$ZMK_CONFIG"
+    exit 0
 fi
+
+# If we get here, no configuration found
+echo "❌ Error: No configuration found"
+echo "   Either provide --shield argument or create build.yaml"
+show_help
+exit 1
