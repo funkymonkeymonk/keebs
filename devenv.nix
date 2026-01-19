@@ -43,5 +43,16 @@
     echo ""
     echo "📋 Configuration: Edit build.yaml to set keyboards"
     echo "🐳 Docker builds read from same build.yaml as GHA"
+    echo "   Docker automatically starts colima and stops on exit"
   '';
+
+  # Start colima when entering devenv
+  devshell.startup = {
+    commands = [ "colima start --cpu 4 --memory 4" ];
+  };
+
+  # Stop colima when leaving devenv
+  devshell.exit = {
+    commands = [ "colima stop" ];
+  };
 }
