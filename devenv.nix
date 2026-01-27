@@ -46,13 +46,8 @@
     echo "   Docker automatically starts colima and stops on exit"
   '';
 
-  # Start colima when entering devenv
-  devshell.startup = {
-    commands = [ "colima start --cpu 4 --memory 4" ];
-  };
-
-  # Stop colima when leaving devenv
-  devshell.exit = {
-    commands = [ "colima stop" ];
+  # Colima process management
+  processes.colima = {
+    exec = "colima start --cpu 4 --memory 4";
   };
 }
