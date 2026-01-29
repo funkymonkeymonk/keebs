@@ -1,0 +1,125 @@
+// Copyright 2022 Manna Harbour
+// https://github.com/manna-harbour/miryoku
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+
+// Custom Miryoku configuration for QWERTY on Corne 6x3
+#define MIRYOKU_ALPHAS_QWERTY
+#define MIRYOKU_TAP_QWERTY  
+#define MIRYOKU_EXTRA_QWERTY
+#define MIRYOKU_NAV_DEFAULT
+#define MIRYOKU_CLIPBOARD_DEFAULT
+#define MIRYOKU_LAYERS_DEFAULT
+
+/ {
+  behaviors {
+    // Home row mods - left hand mods on hold, letter on tap
+    hml: home_row_mods_left {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOMEROW_MODS_LEFT";
+      #binding-cells = <2>;
+      tapping-term-ms = <200>;
+      quick-tap-ms = <0>;
+      require-prior-idle-ms = <120>;
+      hold-trigger-key-positions = <0 1 2 3 4 5 6 7 8 9 10 11>;
+      hold-trigger-on-release;
+      flavor = "balanced";
+      bindings = <&kp>, <&kp>;
+    };
+    
+    // Home row mods - right hand mods on hold, letter on tap
+    hmr: home_row_mods_right {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOMEROW_MODS_RIGHT";
+      #binding-cells = <2>;
+      tapping-term-ms = <200>;
+      quick-tap-ms = <0>;
+      require-prior-idle-ms = <120>;
+      hold-trigger-key-positions = <0 1 2 3 4 5 6 7 8 9 10 11>;
+      hold-trigger-on-release;
+      flavor = "balanced";
+      bindings = <&kp>, <&kp>;
+    };
+    
+    // Layer tap for thumb keys
+    lt1: layer_tap_1 {
+      compatible = "zmk,behavior-layer-tap";
+      label = "LAYER_TAP_1";
+      #binding-cells = <2>;
+      tapping-term-ms = <200>;
+      bindings = <&kp>, <&mo>;
+    };
+  };
+  
+  keymap {
+    compatible = "zmk,keymap";
+    
+    // Base layer (QWERTY)
+    base {
+      bindings = <
+        &kp Q    &kp W    &kp E    &kp R    &kp T
+        &hml LGUI A &hml LALT S &hml LCTL D &hml LSFT F &kp G
+        &hml LSFT Z &hml LCTL X &hml LALT C &hml LGUI V &kp B
+        
+        &kp Y    &kp U    &kp I    &kp O    &kp P
+        &kp H    &hmr LSFT J &hmr LCTL K &hmr LALT L &hmr LGUI SCLN
+        &kp N    &hmr LGUI M &hmr LALT COMM &hmr LCTL DOT &hmr LSFT SLSH
+      >;
+    };
+    
+    // Symbol layer
+    symbol {
+      bindings = <
+        &kp EXCL &kp AT   &kp HASH &kp DLLR &kp PERC
+        &kp AMPS &kp ASTR &kp LPAR &kp RPAR &kp BSLS
+        &kp GRAVE &kp TILD &kp MINUS &kp EQUAL &kp UNDERSCORE
+        
+        &kp CARET &kp PLUS &kp PIPE &kp LBRC &kp RBRC
+        &kp LT   &kp GT  &kp COLON &kp QUOT &kp DQT
+        &kp QMARK &kp PIPE &kp LBRC &kp RBRC &kp BSLH
+      >;
+    };
+    
+    // Navigation layer
+    nav {
+      bindings = <
+        &kp F1   &kp F2   &kp F3   &kp F4   &kp F5
+        &kp F6   &kp F7   &kp F8   &kp F9   &kp F10
+        &kp TAB  &kp INS  &kp HOME &kp PGUP &kp PSCRN
+        
+        &kp F11  &kp F12 &kp BT_CLR &kp BT_PRV &kp BT_NXT
+        &trans   &trans  &kp END  &kp PGDN &kp SLCK
+        &trans   &trans  &trans   &trans   &trans
+      >;
+    };
+    
+    // Media/Function layer  
+    media {
+      bindings = <
+        &trans &trans &trans &trans &trans
+        &trans &trans &trans &trans &trans
+        &trans &trans &trans &trans &trans
+        
+        &trans &trans &trans &trans &trans
+        &kp C_PREV &kp C_PP &kp C_NEXT &kp C_MUTE &kp C_VOL_DN
+        &trans &trans &trans &kp C_VOL_UP &trans
+      >;
+    };
+    
+    // Function layer
+    function {
+      bindings = <
+        &trans &trans &trans &trans &trans
+        &trans &trans &trans &trans &trans
+        &bootloader &reset &trans &trans &trans
+        
+        &trans &trans &trans &trans &trans
+        &trans &trans &trans &trans &trans
+        &trans &trans &trans &trans &trans
+      >;
+    };
+  };
+};
