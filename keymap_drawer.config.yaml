@@ -1,0 +1,93 @@
+---
+# keymap-drawer configuration
+# See: https://github.com/caksoylar/keymap-drawer/blob/main/CONFIGURATION.md
+
+parse_config:
+  # Custom key mappings for cleaner display
+  raw_binding_map:
+    "&bootloader": "BOOT"
+    "&sys_reset": "RESET"
+    "&meh_esc": "MEH+ESC"
+    "&bt BT_CLR": "BT CLR"
+    "&bt BT_SEL 0": "BT 0"
+    "&bt BT_SEL 1": "BT 1"
+    "&bt BT_SEL 2": "BT 2"
+    "&bt BT_SEL 3": "BT 3"
+    "&bt BT_SEL 4": "BT 4"
+
+  # Clean up modifier display
+  modifier_fn_map:
+    LGUI: "GUI"
+    RGUI: "GUI"
+    LALT: "ALT"
+    RALT: "ALT"
+    LCTL: "CTRL"
+    RCTL: "CTRL"
+    LSFT: "SHFT"
+    RSFT: "SHFT"
+
+draw_config:
+  # Key sizes
+  key_w: 60
+  key_h: 56
+
+  # Split keyboard spacing
+  split_gap: 30
+
+  # Combo styling
+  combo_w: 28
+  combo_h: 22
+
+  # Colors - dark theme
+  svg_style: |
+    svg {
+      font-family: "Fira Code", "SF Mono", "Monaco", monospace;
+      font-size: 12px;
+    }
+    rect.key {
+      fill: #2d2d2d;
+      stroke: #505050;
+      stroke-width: 1;
+      rx: 6;
+    }
+    rect.held {
+      fill: #4a4a4a;
+    }
+    text {
+      fill: #e0e0e0;
+    }
+    text.tap {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    text.hold {
+      font-size: 10px;
+      fill: #888888;
+    }
+    text.shifted {
+      font-size: 10px;
+      fill: #888888;
+    }
+    rect.combo {
+      fill: #3a3a3a;
+      stroke: #606060;
+    }
+    path.combo {
+      stroke: #606060;
+      stroke-width: 1;
+      fill: none;
+    }
+
+  # Glyph sizes for SVG icons
+  glyph_tap_size: 16
+  glyph_hold_size: 12
+  glyph_shifted_size: 10
+
+  # Custom glyphs for media keys using Material Design Icons
+  glyphs:
+    vol_up: "$$mdi:volume-high$$"
+    vol_down: "$$mdi:volume-medium$$"
+    mute: "$$mdi:volume-mute$$"
+    play: "$$mdi:play-pause$$"
+    prev: "$$mdi:skip-previous$$"
+    next: "$$mdi:skip-next$$"
