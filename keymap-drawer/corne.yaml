@@ -1,0 +1,346 @@
+layout: {zmk_keyboard: corne}
+layers:
+  Base:
+  - MEH+ESC
+  - Q
+  - W
+  - E
+  - R
+  - T
+  - Y
+  - U
+  - I
+  - O
+  - ''
+  - {t: Game, h: toggle}
+  - BSPC
+  - {t: A, h: LGUI}
+  - {t: S, h: LALT}
+  - {t: D, h: LCTL}
+  - {t: F, h: LSFT}
+  - {t: G, h: Ctl+Alt+LSHIFT}
+  - {t: H, h: Ctl+Alt+LSHIFT}
+  - {t: J, h: RSFT}
+  - {t: K, h: RCTL}
+  - {t: L, h: RALT}
+  - P
+  - ''
+  - ''
+  - Z
+  - X
+  - C
+  - V
+  - B
+  - N
+  - M
+  - ','
+  - .
+  - {t: '''', h: RGUI}
+  - ''
+  - {t: ESC, h: Media}
+  - {t: TAB, h: Func}
+  - {t: SPACE, h: Nav}
+  - {t: RET, h: Num}
+  - {t: BSPC, h: Sym}
+  - {t: DEL, h: Sys}
+  Nav:
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - HOME
+  - PG DN
+  - PG UP
+  - END
+  - ''
+  - ''
+  - ''
+  - LGUI
+  - LALT
+  - LCTL
+  - LSFT
+  - Ctl+Alt+LSHIFT
+  - LEFT
+  - DOWN
+  - UP
+  - RIGHT
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - INS
+  - ''
+  - ''
+  - DEL
+  - ''
+  - ''
+  - ''
+  - ''
+  - {type: held}
+  - ''
+  - ''
+  - ''
+  Func:
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - F12
+  - F7
+  - F8
+  - F9
+  - PSCRN
+  - ''
+  - ''
+  - LGUI
+  - LALT
+  - LCTL
+  - LSFT
+  - Ctl+Alt+LSHIFT
+  - F11
+  - F4
+  - F5
+  - F6
+  - SLCK
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - F10
+  - F1
+  - F2
+  - F3
+  - PAUSE BREAK
+  - ''
+  - ''
+  - {type: held}
+  - ''
+  - ''
+  - ''
+  - ''
+  Media:
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - LGUI
+  - LALT
+  - LCTL
+  - LSFT
+  - Ctl+Alt+LSHIFT
+  - PREV
+  - VOL DN
+  - VOL UP
+  - NEXT
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - {type: held}
+  - ''
+  - ''
+  - PP
+  - MUTE
+  - ''
+  Num:
+  - ''
+  - '['
+  - '7'
+  - '8'
+  - '9'
+  - ']'
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ;
+  - '4'
+  - '5'
+  - '6'
+  - '='
+  - Ctl+Alt+LSHIFT
+  - RSFT
+  - RCTL
+  - RALT
+  - RGUI
+  - ''
+  - ''
+  - '`'
+  - '1'
+  - '2'
+  - '3'
+  - \
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - .
+  - '0'
+  - '-'
+  - {type: held}
+  - ''
+  - ''
+  Sym:
+  - ''
+  - '{'
+  - '&'
+  - '*'
+  - (
+  - '}'
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ':'
+  - $
+  - '%'
+  - ^
+  - +
+  - Ctl+Alt+LSHIFT
+  - RSFT
+  - RCTL
+  - RALT
+  - RGUI
+  - ''
+  - ''
+  - '~'
+  - '!'
+  - '@'
+  - '#'
+  - '|'
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - (
+  - )
+  - _
+  - ''
+  - {type: held}
+  - ''
+  Sys:
+  - BOOT
+  - BT CLR
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - BT CLR
+  - BOOT
+  - RESET
+  - BT 4
+  - BT 3
+  - BT 2
+  - BT 1
+  - BT 0
+  - BT 0
+  - BT 1
+  - BT 2
+  - BT 3
+  - BT 4
+  - RESET
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - {type: held}
+  Game:
+  - TAB
+  - T
+  - Q
+  - W
+  - E
+  - R
+  - Y
+  - U
+  - I
+  - O
+  - ''
+  - {t: Game, h: toggle}
+  - LCTL
+  - G
+  - A
+  - S
+  - D
+  - F
+  - H
+  - J
+  - K
+  - L
+  - P
+  - ''
+  - LSFT
+  - B
+  - Z
+  - X
+  - C
+  - V
+  - N
+  - M
+  - ','
+  - .
+  - /
+  - ''''
+  - ESC
+  - LALT
+  - SPACE
+  - RET
+  - BSPC
+  - DEL
