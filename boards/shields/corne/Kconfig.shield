@@ -1,0 +1,10 @@
+# Corne Dongle Shield Configuration
+
+config SHIELD_CORNE_DONGLE
+    def_bool $(shields_list_contains,corne_dongle)
+
+config SHIELD_CORNE_DONGLE_LEFT
+    def_bool $(shields_list_contains,corne_dongle_left)
+
+config SHIELD_CORNE_DONGLE_RIGHT
+    def_bool $(shields_list_contains,corne_dongle_right)

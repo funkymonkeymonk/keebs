@@ -190,3 +190,125 @@ tasks:
     desc: Only reflash the bootloader (no firmware)
     cmds:
       - task: reflash:bootloader
+
+  flash:dongle:
+    desc: Flash MDBT50Q-CX dongle firmware via DFU
+    cmds:
+      - task: flash:dongle:ensure-nrfutil
+      - task: flash:dongle:check-firmware
+      - task: flash:dongle:prompt-dfu
+      - task: flash:dongle:do-flash
+
+  flash:dongle:build:
+    desc: Build and flash MDBT50Q-CX dongle firmware
+    cmds:
+      - task: build:dongle
+      - task: flash:dongle
+
+  flash:dongle:ensure-nrfutil:
+    desc: Ensure adafruit-nrfutil is available
+    internal: true
+    cmds:
+      - |
+        if ! command -v adafruit-nrfutil &> /dev/null; then
+          echo "ERROR: adafruit-nrfutil not found in PATH"
+          echo "Please reload your devenv: direnv allow"
+          exit 1
+        fi
+    status:
+      - command -v adafruit-nrfutil
+
+  flash:dongle:check-firmware:
+    desc: Check if dongle firmware exists
+    internal: true
+    cmds:
+      - |
+        FIRMWARE="{{.BUILD_DIR}}/corne_dongle-nrf52840dongle_nrf52840-zmk.hex"
+        if [ ! -f "$FIRMWARE" ]; then
+          echo "ERROR: Dongle firmware not found at: $FIRMWARE"
+          echo ""
+          echo "Build it first with one of:"
+          echo "  task build:dongle          # Build only"
+          echo "  task flash:dongle:build    # Build and flash"
+          echo ""
+          echo "Or manually:"
+          echo "  west build -b nrf52840dongle_nrf52840 -- -DSHIELD=corne_dongle"
+          exit 1
+        fi
+        echo "Found firmware: $FIRMWARE"
+
+  flash:dongle:prompt-dfu:
+    desc: Prompt user to enter DFU mode
+    internal: true
+    cmds:
+      - |
+        echo "=== MDBT50Q-CX Dongle DFU Flash ==="
+        echo ""
+        echo "Put the dongle in DFU mode:"
+        echo "  1. UNPLUG the dongle from USB"
+        echo "  2. HOLD the button on the dongle"
+        echo "  3. While HOLDING the button, plug it into USB"
+        echo "  4. Wait ~1 second until the LED turns ON"
+        echo "  5. RELEASE the button"
+        echo "  6. The LED should blink continuously"
+        echo ""
+        echo "Press Enter when the dongle is in DFU mode..."
+        read _
+
+  flash:dongle:do-flash:
+    desc: Flash the dongle firmware via DFU
+    internal: true
+    cmds:
+      - |
+        FIRMWARE="{{.BUILD_DIR}}/corne_dongle-nrf52840dongle_nrf52840-zmk.hex"
+
+        # Detect serial port
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          PORT=$(ls /dev/tty.usbmodem* 2>/dev/null | head -1)
+        else
+          PORT=$(ls /dev/ttyACM* 2>/dev/null | head -1)
+        fi
+
+        if [ -z "$PORT" ]; then
+          echo "ERROR: No DFU device found on serial port"
+          echo ""
+          echo "Make sure the dongle is in DFU mode (LED blinking)"
+          echo "Available ports:"
+          ls -la /dev/tty* 2>/dev/null | grep -E "(ACM|usbmodem)" || echo "  (none found)"
+          exit 1
+        fi
+
+        echo "Found DFU device on: $PORT"
+        echo "Flashing firmware..."
+        echo ""
+
+        adafruit-nrfutil dfu serial \
+          --package "$FIRMWARE" \
+          --port "$PORT" \
+          --baudrate 115200 \
+          --singlebank
+
+        echo ""
+        echo "Flash complete! The dongle will reboot automatically."
+
+  build:dongle:
+    desc: Build dongle firmware for MDBT50Q-CX
+    cmds:
+      - task: build:docker-check
+      - task: clean:workspace
+      - mkdir -p {{.BUILD_DIR}}
+      - echo "Building MDBT50Q-CX dongle firmware..."
+      - >
+        docker run --rm
+        -v "$(pwd)":/workspace
+        -w /workspace
+        -e ZMK_CONFIG=/workspace/config
+        zmkfirmware/zmk-build-arm:stable
+        west build -s zmk/app -b nrf52840dongle_nrf52840 --
+        -DSHIELD=corne_dongle -DZMK_CONFIG=/workspace/config
+      - >
+        mkdir -p {{.BUILD_DIR}} &&
+        cp build/zephyr/zephyr.hex
+        "{{.BUILD_DIR}}/corne_dongle-nrf52840dongle_nrf52840-zmk.hex"
+      - task: clean:workspace
+      - echo "Build complete! Firmware in {{.BUILD_DIR}}/corne_dongle-nrf52840dongle_nrf52840-zmk.hex"

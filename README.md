@@ -23,6 +23,60 @@ A Miryoku-inspired ZMK keymap for the Corne (crkbd) keyboard with nice!nano v2 c
 - **Controller**: nice!nano v2
 - **Display**: nice!view (optional)
 
+## Dongle Setup (Optional)
+
+This keymap supports using a USB dongle for improved battery life. The dongle acts as the central device, allowing both keyboard halves to be peripherals.
+
+### Supported Dongles
+
+- [Raytac MDBT50Q-CX](https://www.raytac.com/product/ins.php?index_id=156) (USB-C, nRF52840)
+- [Raytac MDBT50Q-RX](https://www.raytac.com/product/ins.php?index_id=89) (USB-A, nRF52840)
+- Any nRF52840 USB dongle with Nordic DFU bootloader
+
+### Benefits
+
+- **Improved battery life**: Both halves last ~5-8 months vs 2-4 weeks (left half as central)
+- **Better connectivity**: Dongle stays plugged in, halves connect wirelessly
+- **Travel friendly**: Use dongleless mode when traveling, switch anytime
+
+### Flashing the Dongle (MDBT50Q-CX)
+
+The MDBT50Q-CX uses Nordic's DFU bootloader (not UF2):
+
+1. **Enter DFU mode**:
+   - Hold the button on the dongle
+   - Plug into USB while holding
+   - Wait ~1 second until LED turns on
+   - Release button (LED blinks continuously)
+
+2. **Flash with nRF Connect** (GUI):
+   - Open **nRF Connect Desktop → Programmer**
+   - Click **SELECT DEVICE → Open DFU Bootloader**
+   - Drag `zephyr.hex` into the File area
+   - Click **Write**
+
+3. **Flash with adafruit-nrfutil** (CLI):
+   ```bash
+   adafruit-nrfutil dfu serial --package firmware.hex --port /dev/ttyACM0
+   ```
+
+### Flashing Keyboard Halves (with Dongle)
+
+When using a dongle, flash the peripheral firmware:
+
+1. Download `nice_nano_v2-corne_left-peripheral-zmk.uf2` (or right)
+2. Flash to keyboard halves as normal (double-tap reset, copy .uf2)
+3. The halves will automatically pair with the dongle
+
+### Switching Between Dongle/Dongleless
+
+To switch modes, flash the `settings_reset` firmware to all devices (dongle + both halves), then flash the appropriate firmware.
+
+### References
+
+- [ZMK Dongle Documentation](https://zmk.dev/docs/development/hardware-integration/dongle)
+- [Raytac MDBT50Q-CX User Manual](https://www.raytac.com/news/ins.php?index_id=175)
+
 ## Layer Overview
 
 | Layer | Name   | Access              | Description                          |
@@ -165,9 +219,14 @@ A Miryoku-inspired ZMK keymap for the Corne (crkbd) keyboard with nice!nano v2 c
 ### Download
 
 1. Go to the [Latest Release](https://github.com/funkymonkeymonk/keebs/releases/latest)
-2. Download both `.uf2` files:
+2. **For dongleless setup** (default):
    - `nice_nano_v2-corne_left-nice_view_adapter-nice_view-zmk.uf2` (left half)
    - `nice_nano_v2-corne_right-nice_view_adapter-nice_view-zmk.uf2` (right half)
+3. **For dongle setup**:
+   - `nrf52840dongle_nrf52840-corne_dongle-zmk.hex` (dongle - flash via DFU)
+   - `nice_nano_v2-corne_left-nice_view_adapter-nice_view-peripheral-zmk.uf2`
+   - `nice_nano_v2-corne_right-nice_view_adapter-nice_view-peripheral-zmk.uf2`
+4. `settings_reset.uf2` - For clearing Bluetooth bonds when switching modes
 
 ### Flashing
 
