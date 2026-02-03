@@ -1,0 +1,186 @@
+// Corne ZMK Keymap - Miryoku-inspired layout
+// Ported from Keebio Iris CE QMK keymap
+// Layout: 6 columns x 3 rows + 3 thumb keys per side = 42 keys total
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+
+// Layer definitions
+#define BASE 0
+#define NAV  1
+#define FUNC 2
+#define MEDIA 3
+#define NUM  4
+#define SYM  5
+#define SYS  6
+#define GAME 7
+
+// Meh modifier (Ctrl+Alt+Shift)
+#define MEH LC(LA(LSHIFT))
+
+/ {
+    behaviors {
+        // Home row mods with balanced flavor
+        hm: home_row_mods {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <100>;
+            flavor = "balanced";
+            bindings = <&kp>, <&kp>;
+        };
+
+        // Layer-tap for thumb cluster
+        lt: layer_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <100>;
+            flavor = "balanced";
+            bindings = <&mo>, <&kp>;
+        };
+    };
+
+    macros {
+        // MEH+ESC macro - sends Ctrl+Alt+Shift+Escape
+        meh_esc: meh_esc {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&kp LC(LA(LS(ESC)))>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        // Layer 0: Base - QWERTY with home row mods
+        base_layer {
+            display-name = "Base";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &meh_esc   &kp Q      &kp W      &kp E      &kp R      &kp T          &kp Y      &kp U      &kp I      &kp O      &none      &tog GAME
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &kp BSPC   &hm LGUI A &hm LALT S &hm LCTL D &hm LSFT F &hm MEH G      &hm MEH H  &hm RSFT J &hm RCTL K &hm RALT L &kp P      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp Z      &kp X      &kp C      &kp V      &kp B          &kp N      &kp M      &kp COMMA  &kp DOT    &hm RGUI SQT &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &lt MEDIA ESC &lt FUNC TAB &lt NAV SPACE   &lt NUM RET &lt SYM BSPC &lt SYS DEL
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 1: Navigation - accessed via left Space hold
+        nav_layer {
+            display-name = "Nav";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &none      &none      &none      &none      &none      &none          &kp HOME   &kp PG_DN  &kp PG_UP  &kp END    &none      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp LGUI   &kp LALT   &kp LCTL   &kp LSFT   &kp MEH        &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &none      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &none      &none      &none      &none      &none          &kp INS    &none      &none      &kp DEL    &none      &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &none      &none      &trans         &none      &none      &none
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 2: Function keys - accessed via left Tab hold
+        func_layer {
+            display-name = "Func";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &none      &none      &none      &none      &none      &none          &kp F12    &kp F7     &kp F8     &kp F9     &kp PSCRN  &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp LGUI   &kp LALT   &kp LCTL   &kp LSFT   &kp MEH        &kp F11    &kp F4     &kp F5     &kp F6     &kp SLCK   &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &none      &none      &none      &none      &none          &kp F10    &kp F1     &kp F2     &kp F3     &kp PAUSE_BREAK &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &none      &trans     &none          &none      &none      &none
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 3: Media - accessed via left Esc hold
+        media_layer {
+            display-name = "Media";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &none      &none      &none      &none      &none      &none          &none      &none      &none      &none      &none      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp LGUI   &kp LALT   &kp LCTL   &kp LSFT   &kp MEH        &kp C_PREV &kp C_VOL_DN &kp C_VOL_UP &kp C_NEXT &none   &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &none      &none      &none      &none      &none          &none      &none      &none      &none      &none      &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &trans     &none      &none          &kp C_PP   &kp C_MUTE &none
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 4: Numbers - accessed via right Enter hold
+        num_layer {
+            display-name = "Num";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &none      &kp LBKT   &kp N7     &kp N8     &kp N9     &kp RBKT       &none      &none      &none      &none      &none      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp SEMI   &kp N4     &kp N5     &kp N6     &kp EQUAL      &kp MEH    &kp RSFT   &kp RCTL   &kp RALT   &kp RGUI   &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp GRAVE  &kp N1     &kp N2     &kp N3     &kp BSLH       &none      &none      &none      &none      &none      &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &kp DOT    &kp N0     &kp MINUS      &trans     &none      &none
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 5: Symbols - accessed via right Bspc hold
+        sym_layer {
+            display-name = "Sym";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &none      &kp LBRC   &kp AMPS   &kp ASTRK  &kp LPAR   &kp RBRC       &none      &none      &none      &none      &none      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp COLON  &kp DLLR   &kp PRCNT  &kp CARET  &kp PLUS       &kp MEH    &kp RSFT   &kp RCTL   &kp RALT   &kp RGUI   &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &kp TILDE  &kp EXCL   &kp AT     &kp HASH   &kp PIPE       &none      &none      &none      &none      &none      &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &kp LPAR   &kp RPAR   &kp UNDER      &none      &trans     &none
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 6: System - accessed via right Del hold (mirrored for split safety)
+        sys_layer {
+            display-name = "Sys";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &bootloader &bt BT_CLR &none     &none      &none      &none          &none      &none      &none      &none      &bt BT_CLR &bootloader
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &sys_reset &bt BT_SEL 4 &bt BT_SEL 3 &bt BT_SEL 2 &bt BT_SEL 1 &bt BT_SEL 0   &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &sys_reset
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &none      &none      &none      &none      &none      &none          &none      &none      &none      &none      &none      &none
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &none      &none      &none          &none      &none      &trans
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+
+        // Layer 7: Gaming - toggle layer, no home row mods
+        game_layer {
+            display-name = "Game";
+            bindings = <
+        // ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮   ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮
+             &kp TAB    &kp T      &kp Q      &kp W      &kp E      &kp R          &kp Y      &kp U      &kp I      &kp O      &none      &tog GAME
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &kp LCTL   &kp G      &kp A      &kp S      &kp D      &kp F          &kp H      &kp J      &kp K      &kp L      &kp P      &none
+        // ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+             &kp LSFT   &kp B      &kp Z      &kp X      &kp C      &kp V          &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp SQT
+        // ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┤   ├──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯
+                                              &kp ESC    &kp LALT   &kp SPACE      &kp RET    &kp BSPC   &kp DEL
+        //                                  ╰──────────┴──────────┴──────────╯   ╰──────────┴──────────┴──────────╯
+            >;
+        };
+    };
+};
