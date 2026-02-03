@@ -1,5 +1,11 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # Build adafruit-nrfutil with unfree license allowed
+  adafruit-nrfutil = pkgs.adafruit-nrfutil.overrideAttrs (old: {
+    meta = old.meta // { license = lib.licenses.mit; };
+  });
+in
 {
   cachix.enable = false;
 
@@ -12,6 +18,8 @@
     pkgs.act
     pkgs.colima
     pkgs.go-task
+    # Bootloader flashing tools
+    adafruit-nrfutil
   ];
 
   pre-commit.hooks = {

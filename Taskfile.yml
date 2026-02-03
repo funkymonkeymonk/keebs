@@ -71,4 +71,122 @@ tasks:
     desc: Clean west/zephyr workspace artifacts
     cmds:
       - echo "Cleaning west workspace..."
-      - rm -rf .west zmk zephyr modules tools bootloader 2>/dev/null || true
+      - rm -rf .west zmk zephyr modules tools 2>/dev/null || true
+
+  reflash:left:
+    desc: Reflash bootloader and firmware on left half via DFU
+    cmds:
+      - task: reflash:ensure-nrfutil
+      - task: reflash:bootloader
+      - task: reflash:wait-for-volume
+      - task: reflash:firmware-left
+
+  reflash:right:
+    desc: Reflash bootloader and firmware on right half via DFU
+    cmds:
+      - task: reflash:ensure-nrfutil
+      - task: reflash:bootloader
+      - task: reflash:wait-for-volume
+      - task: reflash:firmware-right
+
+  reflash:ensure-nrfutil:
+    desc: Ensure adafruit-nrfutil is available
+    internal: true
+    cmds:
+      - |
+        if ! command -v adafruit-nrfutil &> /dev/null; then
+          echo "ERROR: adafruit-nrfutil not found in PATH"
+          echo "Please reload your devenv: direnv allow"
+          exit 1
+        fi
+    status:
+      - command -v adafruit-nrfutil
+
+  reflash:bootloader:
+    desc: Reflash the nice!nano bootloader via DFU (internal)
+    cmds:
+      - |
+        echo "=== nice!nano Bootloader Reflash ==="
+        echo ""
+        echo "IMPORTANT: Use Serial DFU mode for clean bootloader flash"
+        echo ""
+        echo "1. UNPLUG the keyboard"
+        echo "2. HOLD the reset button DOWN"
+        echo "3. While HOLDING reset, plug in the USB cable"
+        echo "4. Release reset after 2 seconds"
+        echo "5. Press Enter when ready..."
+        read _
+
+        # Find the serial port
+        SERIAL_PORT=$(ls /dev/tty.usbmodem* 2>/dev/null | head -1)
+        if [ -z "$SERIAL_PORT" ]; then
+          echo "ERROR: No nice!nano serial port found at /dev/tty.usbmodem*"
+          echo "Make sure you followed the steps above (hold reset while plugging in)"
+          exit 1
+        fi
+
+        echo "Found serial port: $SERIAL_PORT"
+        echo "Flashing bootloader (v0.10.0)..."
+        adafruit-nrfutil --verbose dfu serial \
+          --package bootloader/nice_nano_bootloader-0.10.0_s140_6.1.1.zip \
+          -p "$SERIAL_PORT" \
+          -b 115200 \
+          --singlebank
+
+        echo ""
+        echo "Bootloader flashed successfully!"
+        echo ""
+        echo "Now UNPLUG the keyboard, wait 3 seconds, plug it back in,"
+        echo "then DOUBLE-TAP reset to enter UF2 bootloader mode."
+
+  reflash:wait-for-volume:
+    desc: Wait for NICENANO volume to appear after bootloader flash
+    internal: true
+    cmds:
+      - |
+        echo "Waiting for NICENANO volume to mount..."
+        for i in $(seq 1 30); do
+          if [ -d "/Volumes/NICENANO" ]; then
+            echo "NICENANO volume mounted!"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "ERROR: NICENANO volume did not appear within 30 seconds"
+        echo "Try double-tapping reset button again"
+        exit 1
+
+  reflash:firmware-left:
+    desc: Flash left half firmware to mounted NICENANO volume
+    internal: true
+    cmds:
+      - |
+        FIRMWARE="{{.BUILD_DIR}}/corne_left nice_view_adapter nice_view-nice_nano_v2-zmk.uf2"
+        if [ ! -f "$FIRMWARE" ]; then
+          echo "ERROR: Left firmware not found at: $FIRMWARE"
+          echo "Run 'task build' first to build the firmware"
+          exit 1
+        fi
+        echo "Copying left firmware to NICENANO..."
+        cp "$FIRMWARE" /Volumes/NICENANO/
+        echo "Firmware copied! Keyboard will reboot automatically."
+
+  reflash:firmware-right:
+    desc: Flash right half firmware to mounted NICENANO volume
+    internal: true
+    cmds:
+      - |
+        FIRMWARE="{{.BUILD_DIR}}/corne_right nice_view_adapter nice_view-nice_nano_v2-zmk.uf2"
+        if [ ! -f "$FIRMWARE" ]; then
+          echo "ERROR: Right firmware not found at: $FIRMWARE"
+          echo "Run 'task build' first to build the firmware"
+          exit 1
+        fi
+        echo "Copying right firmware to NICENANO..."
+        cp "$FIRMWARE" /Volumes/NICENANO/
+        echo "Firmware copied! Keyboard will reboot automatically."
+
+  reflash:bootloader-only:
+    desc: Only reflash the bootloader (no firmware)
+    cmds:
+      - task: reflash:bootloader
