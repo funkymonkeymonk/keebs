@@ -1,0 +1,74 @@
+version: '3'
+
+vars:
+  BUILD_DIR: build
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build ZMK firmware locally using act
+    cmds:
+      - task: build:docker-check
+      - task: clean:workspace
+      - mkdir -p {{.BUILD_DIR}}
+      - echo "Building ZMK firmware with act..."
+      - act --env ACT=true --artifact-server-path {{.BUILD_DIR}}
+      - task: build:extract-artifacts
+      - task: clean:workspace
+      - echo ""
+      - echo "Build complete! Firmware files:"
+      - ls -la {{.BUILD_DIR}}/*.uf2 2>/dev/null || echo "No .uf2 files found"
+
+  build:extract-artifacts:
+    desc: Extract firmware from artifact server directory
+    internal: true
+    cmds:
+      - |
+        # Extract firmware.zip if it exists
+        if [ -f "{{.BUILD_DIR}}/1/firmware/firmware.zip" ]; then
+          unzip -o "{{.BUILD_DIR}}/1/firmware/firmware.zip" -d "{{.BUILD_DIR}}/"
+        fi
+        # Clean up artifact server subdirectories
+        rm -rf "{{.BUILD_DIR}}/1" 2>/dev/null || true
+
+  build:docker-check:
+    desc: Ensure Docker/Colima is running
+    internal: true
+    cmds:
+      - |
+        if ! docker info > /dev/null 2>&1; then
+          echo "Starting colima..."
+          colima start
+        fi
+    status:
+      - docker info > /dev/null 2>&1
+
+  build:clean:
+    desc: Clean build output and rebuild firmware
+    cmds:
+      - task: clean:build
+      - task: build
+
+  clean:
+    desc: Clean all build artifacts and workspace
+    cmds:
+      - echo "Cleaning all..."
+      - task: clean:build
+      - task: clean:workspace
+      - echo "Clean complete."
+
+  clean:build:
+    desc: Clean firmware build output directory
+    cmds:
+      - echo "Cleaning build directory..."
+      - rm -rf {{.BUILD_DIR}}/* 2>/dev/null || true
+
+  clean:workspace:
+    desc: Clean west/zephyr workspace artifacts
+    cmds:
+      - echo "Cleaning west workspace..."
+      - rm -rf .west zmk zephyr modules tools bootloader 2>/dev/null || true

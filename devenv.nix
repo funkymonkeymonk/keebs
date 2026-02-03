@@ -10,6 +10,8 @@
     pkgs.gh
     pkgs.docker-client
     pkgs.act
+    pkgs.colima
+    pkgs.go-task
   ];
 
   pre-commit.hooks = {

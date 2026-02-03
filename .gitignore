@@ -15,6 +15,14 @@ build/
 *.hex
 *.bin
 
+# West/Zephyr workspace (created by local act --bind builds)
+.west/
+zmk/
+zephyr/
+modules/
+tools/
+bootloader/
+
 # IDE
 .vscode/
 .idea/
