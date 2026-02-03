@@ -9,3 +9,54 @@ on:
 jobs:
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: firmware
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          # Find and copy all .uf2 files
+          find firmware -name "*.uf2" -exec cp {} release/ \;
+          # List files for debugging
+          ls -la release/
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ steps.sha.outputs.short }}
+          name: Firmware Build ${{ steps.sha.outputs.short }}
+          body: |
+            ## Firmware Build
+
+            **Commit:** ${{ github.sha }}
+            **Date:** ${{ github.event.head_commit.timestamp }}
+            **Message:** ${{ github.event.head_commit.message }}
+
+            ### Installation
+
+            1. Connect your keyboard via USB
+            2. Double-tap the reset button to enter bootloader mode
+            3. Copy the appropriate `.uf2` file to the mounted drive:
+               - `nice_nano_v2-corne_left*.uf2` for the left half
+               - `nice_nano_v2-corne_right*.uf2` for the right half
+
+            ### Files
+
+            - `nice_nano_v2-corne_left-nice_view_adapter-nice_view-zmk.uf2` - Left half with nice!view display
+            - `nice_nano_v2-corne_right-nice_view_adapter-nice_view-zmk.uf2` - Right half with nice!view display
+          files: release/*.uf2
+          make_latest: true

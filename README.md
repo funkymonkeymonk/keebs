@@ -1,6 +1,13 @@
 # Corne ZMK Keymap
 
+[![Build ZMK Firmware](https://github.com/funkymonkeymonk/keebs/actions/workflows/build.yml/badge.svg)](https://github.com/funkymonkeymonk/keebs/actions/workflows/build.yml)
+[![Latest Release](https://img.shields.io/github/v/release/funkymonkeymonk/keebs?label=firmware)](https://github.com/funkymonkeymonk/keebs/releases/latest)
+
 A Miryoku-inspired ZMK keymap for the Corne (crkbd) keyboard with nice!nano v2 controller.
+
+## Download Firmware
+
+**[Download Latest Firmware](https://github.com/funkymonkeymonk/keebs/releases/latest)** - Get the `.uf2` files for your keyboard.
 
 ## Features
 
@@ -153,19 +160,31 @@ A Miryoku-inspired ZMK keymap for the Corne (crkbd) keyboard with nice!nano v2 c
 
 **Note**: Gaming layer has no home row mods - all keys send their literal values. WASD is shifted right for ergonomic hand position.
 
-## Building
+## Installation
+
+### Download
+
+1. Go to the [Latest Release](https://github.com/funkymonkeymonk/keebs/releases/latest)
+2. Download both `.uf2` files:
+   - `nice_nano_v2-corne_left-nice_view_adapter-nice_view-zmk.uf2` (left half)
+   - `nice_nano_v2-corne_right-nice_view_adapter-nice_view-zmk.uf2` (right half)
+
+### Flashing
+
+1. Connect the keyboard half via USB
+2. Double-tap the reset button to enter bootloader mode
+3. A drive named `NICENANO` will appear
+4. Copy the appropriate `.uf2` file to the drive
+5. The keyboard will automatically reboot
+6. Repeat for the other half
+
+## Building Locally
 
 The firmware is built automatically via GitHub Actions. To build locally:
 
 1. Set up ZMK development environment
 2. Run `west build -b nice_nano_v2 -- -DSHIELD=corne_left`
 3. Run `west build -b nice_nano_v2 -- -DSHIELD=corne_right`
-
-## Flashing
-
-1. Connect the keyboard via USB
-2. Double-tap reset to enter bootloader mode
-3. Copy the `.uf2` file to the mounted drive
 
 ## Customization
 
