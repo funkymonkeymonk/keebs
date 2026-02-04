@@ -8,8 +8,8 @@ inputs:
 # allowUnfree: true
 
 # If you're willing to use a package that's vulnerable
-# permittedInsecurePackages:
-#   - "openssl-1.1.1w"
+permittedInsecurePackages:
+  - "python3.13-ecdsa-0.19.1"
 
 # If you have more than one devenv you can merge them
 # imports:

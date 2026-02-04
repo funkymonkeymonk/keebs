@@ -21,7 +21,6 @@ zmk/
 zephyr/
 modules/
 tools/
-bootloader/
 
 # IDE
 .vscode/
